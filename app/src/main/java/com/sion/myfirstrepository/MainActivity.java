@@ -1,6 +1,7 @@
 package com.sion.myfirstrepository;
 
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.AppCompatButton;
 import android.util.Log;
@@ -23,6 +24,8 @@ public class MainActivity extends BaseActivity {
     TextView helloText;
     @BindView(R.id.hello_button)
     AppCompatButton helloButton;
+    @BindView(R.id.paint_button)
+    AppCompatButton mPaintButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,9 +33,11 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle("Main");
+        if (actionBar != null) {
+            actionBar.setTitle("Main");
+        }
 
-        helloButton.setOnClickListener(v -> handleClick());
+        helloButton.setOnClickListener(v -> MainActivity.this.handleClick());
 
         new Thread(() -> {
         });
@@ -58,12 +63,9 @@ public class MainActivity extends BaseActivity {
             }
         };
 
-        Observable.create(new Observable.OnSubscribe<Integer>() {
-            @Override
-            public void call(Subscriber<? super Integer> subscriber) {
-                for (Integer i : intArray) subscriber.onNext(i);
-                subscriber.onCompleted();
-            }
+        Observable.create((Observable.OnSubscribe<Integer>) subscriber1 -> {
+            for (Integer i : intArray) subscriber1.onNext(i);
+            subscriber1.onCompleted();
         })
                 .map(integer -> integer >= 5 ? integer.toString() + " >= 5" : integer.toString() + " < 5")
                 .subscribeOn(Schedulers.io())
@@ -75,8 +77,15 @@ public class MainActivity extends BaseActivity {
     public void onHelloButtonClick() {
     }
 
-    @OnClick(R.id.hello_text)
-    public void onHelloTextClick() {
+    @OnClick(R.id.paint_button)
+    public void onPaintButtonClick() {
+        Fragment fragment = new PaintFragment();
+        String tag = fragment.getTag();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .addToBackStack(tag)
+                .replace(android.R.id.content, fragment, tag)
+                .commit();
     }
 
 //    @OnClick({R.id.hello_button})
